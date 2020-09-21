@@ -11,21 +11,25 @@ app.secret_key = "secret"
 
 def inicializar():
     try:
-        # conexão do banco
-        conn = psycopg2.connect(dbname='#####', user='#####',
-                                password='#####', host='localhost', port=5435)
-        print("Conexão com banco de dados realizada com sucesso")
-        cur = conn.cursor()
-        #SELECT que realiza a obtenção dos dados da base e realiza a transformação das coordenadas em ESPG 28192(SAD69) para ESPG 4326
-        cur.execute("SELECT gid, pre_nome, nome, ST_X(ST_TRANSFORM(geom,'+proj=utm +zone=22 +south +ellps=aust_SA +units=m +no_defs' ,4326)) AS lon, ST_Y(ST_TRANSFORM(geom,'+proj=utm +zone=22 +south +ellps=aust_SA +units=m +no_defs' ,4326)) AS lat, alcool_gel_l, cnes  FROM saude.hospital_covid WHERE alcool_gel_l > -1 and coord_e is not NULL ORDER BY (pre_nome,nome)")
-        result = cur.fetchall()    
+        
+        # # conexão do banco
+        # conn = psycopg2.connect(dbname='#####', user='#####',
+        #                         password='#####', host='localhost', port=5435)
+        # print("Conexão com banco de dados realizada com sucesso")
+        # cur = conn.cursor()
+        # #SELECT que realiza a obtenção dos dados da base e realiza a transformação das coordenadas em ESPG 28192(SAD69) para ESPG 4326
+        # cur.execute("SELECT gid, pre_nome, nome, ST_X(ST_TRANSFORM(geom,'+proj=utm +zone=22 +south +ellps=aust_SA +units=m +no_defs' ,4326)) AS lon, ST_Y(ST_TRANSFORM(geom,'+proj=utm +zone=22 +south +ellps=aust_SA +units=m +no_defs' ,4326)) AS lat, alcool_gel_l, cnes  FROM saude.hospital_covid WHERE alcool_gel_l > -1 and coord_e is not NULL ORDER BY (pre_nome,nome)")
+        # result = cur.fetchall()    
+        # items = []
+        # #iterando todos os selects dos hospitais e inserindo em um dict
+        # for itr in result:
+        #     item = dict(gid=itr[0], prenome=itr[1], nome=itr[2],
+        #                 lat=itr[4], lon=itr[3], alcool=itr[5], 
+        #                 cnes=itr[6])
         items = []
-        #iterando todos os selects dos hospitais e inserindo em um dict
-        for itr in result:
-            item = dict(gid=itr[0], prenome=itr[1], nome=itr[2],
-                        lat=itr[4], lon=itr[3], alcool=itr[5], 
-                        cnes=itr[6])
-            print(item)
+
+        reader = csv.DictReader(open(".\static\csv\coordenadas.csv"))
+        for item in reader:
             items.append(item)
         return items
     except:
@@ -36,9 +40,10 @@ def distance_km(x1, y1, x2, y2):
     y1 = float(y1)
     x2 = float(x2)
     y2 = float(y2)
-    coord1 = {x1 , y1}
-    coord2 = {x2, y2}
-    return haversine(coord1, coord2)
+    coord1 = (x1 , y1)
+    coord2 = (x2, y2)
+    proximo = haversine(coord1, coord2)
+    return proximo
 # inicializar rotas
 # ---Rota principal, gerar HTML, preencher o mapa com pontos padrão antes da interação do usuário
 @app.route("/")
@@ -47,13 +52,13 @@ def index():
     print("Servidor Inicializado")
     try:
         items = inicializar()
-        # condicional para renderização de página de erro 
-        # if items == -1:
-        #     var = "Conexão indisponível. Código de erro"
-        #     print(var)
-        #     print(e)
-        #     return render_template('erro.html')
-        # else:
+            # condicional para renderização de página de erro 
+            # if items == -1:
+            #     var = "Conexão indisponível. Código de erro"
+            #     print(var)
+            #     print(e)
+            #     return render_template('erro.html')
+            # else:
         return render_template('index.html', items=items)
     #caso ocorra algum erro no carregamento do site ou conexão com o banco.
     except:
@@ -67,19 +72,15 @@ def consulta():
     # OBTER latide Longitude DO GID ENVIADO
     gid = int(request.form.to_dict()['gid'])
     # gid-type integer
-    indice = 0
     lat_or = 0
     lon_or = 0
     for data in items:
-        if data['gid'] == gid:
-            print(data['lat'])
+        if int(data['gid']) == gid:
             lat_or = data['lat']
             float(lat_or)
             lon_or = data['lon']
             float(lon_or)
             break
-        else:
-            indice += 1
     # CALCULAR MENOR
     # valor absurdo
     distancia_menor = 1800000
@@ -93,7 +94,7 @@ def consulta():
     for data in items:
         distancia_menor_suposta = distance_km(lat_or, lon_or, data['lat'], data['lon'])
         #variais de controle para todos os campos do dict.
-        gid_atual = data['gid']
+        gid_atual = int(data['gid'])
         lat_atual = data['lat']
         lon_atual = data['lon']
         prenome_atual = data['prenome']
@@ -115,4 +116,4 @@ def consulta():
     return {'hospital_proximo': [gid_menor, prenome_menor, nome_menor, lat_menor, lon_menor, distancia_menor, alcool_menor, cnes_menor]}
 # definições da aplicação, endereço e porta de hospedagem
 if __name__ == "__main__":
-    app.run(port=7520, debug=True)
+    app.run(port=7520, debug=False)
