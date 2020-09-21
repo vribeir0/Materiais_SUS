@@ -1,0 +1,118 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Busca de Materiais SUS - COVID19</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='leaflet.css')}}">
+    <script src="{{url_for('static', filename='leaflet.js')}}"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='later.css')}}">
+</head>
+
+<body>
+    <!--NAVBAR-->
+    <nav id = "nav" class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+        <a class="navbar-brand" href="#main">
+            <img src="static/img/utfpr.png" alt="Universidade Tecnológica Federal do Paraná"
+                style="width: 8%; height: 8%"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#consulta">Consulta</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#unidades">Unidades de Saúde</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#sobre">Sobre</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div id="colordegrade" class="bg-light">
+        <div id="textoinicial" class="bg-light text-center">
+            <br><br><br><br>
+            <h1 class="display-3">Busca de Materiais</h1>
+            <p class="lead">
+                <p>Aplicação para auxiliar na comunicação e desenvolvimento de atividades de cooperação entre
+                    instituições de saúde de Curitiba.
+                    <br>O projeto visa através de análise de dados geográficos fornecer de forma rápida e eficiente
+                    informações atualizadas.</p>
+            </p>
+            <hr class="my-3">
+        </div>
+        <div class="form-group text-center">
+            <select id="myForm" class="custom-select" style="width: 50vw;" onChange="capturar(this);">
+                <option selected="">Selecione o hospital em que você se encontra.</option>
+                {% for item in items %}
+                <option value="{{item.gid}}">{{item.prenome}} {{item.nome}}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="mapid" class="jscenter"></div>
+        <script type="text/javascript">
+            const mymap = L.map('mapid').setView([-25.4284, -49.2733], 12);
+            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            const attribution = '&copy; <a href=https://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+            const tiles = L.tileLayer(tileUrl, { attribution });
+            mymap.addLayer(tiles)
+            var layerGroup = L.layerGroup().addTo(mymap);
+            //resetar após uso sempre
+            async function capturar(sel) {
+                var hospital = sel.options[sel.selectedIndex].value;
+                get_minordistance(hospital);
+            }
+            async function get_minordistance(hospital) {
+                var formData = new FormData();
+                formData.append('gid', hospital);
+                let response = await fetch('/consulta/', {
+                    method: 'POST',
+                    body: formData,
+                });
+                let data = await response.json();
+                var pre_nome = data['hospital_proximo'][1];
+                var nome_ = data['hospital_proximo'][2]
+                layerGroup.clearLayers()
+                var preNomeHosp = data['hospital_proximo'][1];
+                pre_nome.toString();
+                var nomeHosp = data['hospital_proximo'][2];
+                nome_.toString();
+                var distancia = data['hospital_proximo'][5];
+                parseFloat(distancia);
+                distanciaMenor = distancia.toFixed(3);
+                distanciaMenor.toString();
+                var alcool = data['hospital_proximo'][6];
+                alcool.toString();
+                var cnes = data['hospital_proximo'][7];
+                cnes.toString();
+                var NomeCompleto;
+                var titulo = "<h6><strong>Unidade de saúde com<br>álcool gel mais próximo</strong></h6><br>";
+                NomeCompleto = titulo.concat("CNES: ",cnes,"<br>","Nome: ",pre_nome," ",nomeHosp,"<br>","Quantidade: ",alcool,"<br>","Distancia: ",distanciaMenor,"km");
+                L.marker([data['hospital_proximo'][3], data['hospital_proximo'][4]]).addTo(layerGroup).bindPopup(NomeCompleto).openPopup();
+                //essas duas variaveis dentro de strong preciso que elas imprimam o conteúdo delas, e não "data[hospital_proximo1" no popup do marker, como explicitar que é uma variavel e não uma string direta ?
+            }
+            {% for item in items %}
+            {% if (lat != 'None'): %}
+                L.marker([{{ item.lat }}, {{ item.lon }}]).addTo(layerGroup).bindPopup("<strong>{{ item.prenome }} {{ item.nome }}</strong>").openPopup();
+            {% endif %}
+            {% endfor %}
+        </script>
+        <br>
+    </div>
+    <footer class="page-footer font-small bg-primary text-white text-center">
+        <div id="sobre" class="footer-copyright text-center py-3 footer-copyright">© 2020 Todos os direitos reservados:
+            <a href="http://www2.dainf.ct.utfpr.edu.br/" target="_blank">UTFPR - DAINF</a><br>
+            <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank"><img
+                    src="static/img/by-nc-nd.png" style="height: 3%; width: 5%;"></a>
+        </div>
+    </footer>
+</body>
+</html>

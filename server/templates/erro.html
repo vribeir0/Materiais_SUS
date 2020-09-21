@@ -1,0 +1,56 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Busca de Materiais SUS - COVID19</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='leaflet.css')}}">
+    <script src="{{url_for('static', filename='leaflet.js')}}"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='later.css')}}">
+</head>
+
+<body>
+    <!--NAVBAR-->
+    <nav id=nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+        <a class="navbar-brand" href="#main">
+            <img src="static/img/utfpr.png" alt="Universidade Tecnológica Federal do Paraná"
+                style="width: 8%; height: 8%"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#consulta">Consulta</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#unidades">Unidades de Saúde</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#sobre">Sobre</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div id="main" class="jumbotron">
+        <h1 class="display-3">Sentimos muito...</h1>
+        <p class="lead">Ocorreu um erro com nossos servidores, clique no link abaixo para reconectar</p>
+        <p class="lead">
+            <a class="btn btn-primary btn-lg" href="/index" role="button">Acessar Novamente</a>
+        </p>
+    </div>
+    <footer class="page-footer font-small bg-primary text-white text-center">
+        <div id="sobre"class="footer-copyright text-center py-3 footer-copyright">© 2020 Todos os direitos reservados:
+            <a href="http://www2.dainf.ct.utfpr.edu.br/" target="_blank">UTFPR - DAINF</a><br>
+            <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank"><img src="static/img/by-nc-nd.png"
+                    style="height: 4%; width: 8%;"></a>
+        </div>
+    </footer>
+</body>
+
+
+</html>
